@@ -1,6 +1,16 @@
+/*
+CSC139
+Fall 2024
+Third Assignment
+Gupta, Rahul
+Section #5
+OSs Tested on: Linux
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <stdbool.h>
 #include <sys/timeb.h>
 #include <semaphore.h>
 
@@ -9,6 +19,9 @@
 #define RANDOM_SEED 7649
 #define MAX_RANDOM_NUMBER 3000
 #define NUM_LIMIT 9973
+
+// g++ -O3 src/MTFindProd.c -o bin/MTFindProd -lpthread
+// bin/MTFindProd x y z
 
 // Global variables
 long gRefTime; //For timing
