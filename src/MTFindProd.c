@@ -95,6 +95,15 @@ int main(int argc, char *argv[]){
 	// Initialize threads, create threads, and then let the parent wait for all threads using pthread_join
 	// The thread start function is ThFindProd
 	// Don't forget to properly initialize shared variables
+	for (int i = 0; i < gThreadCount; i++) {
+		pthread_attr_init(&attr[i]);
+		pthread_create(&tid[i], &attr[i], ThFindProd, indices[i]);
+	}
+
+	for (int j = 0; j < gThreadCount; j++) {
+		while (!gThreadDone[j]);
+		pthread_join(tid[j], NULL);
+	}
 
 
     prod = ComputeTotalProduct();
@@ -136,7 +145,12 @@ int main(int argc, char *argv[]){
 // Write a regular sequential function to multiply all the elements in gData mod NUM_LIMIT
 // REMEMBER TO MOD BY NUM_LIMIT AFTER EACH MULTIPLICATION TO PREVENT YOUR PRODUCT VARIABLE FROM OVERFLOWING
 int SqFindProd(int size) {
-
+	int prod = 1;
+	for (int i = 0; i < size; i++) {
+		prod *= gData[i];
+		prod %= NUM_LIMIT;
+	}
+	return prod;
 }
 
 // Write a thread function that computes the product of all the elements in one division of the array mod NUM_LIMIT
@@ -144,7 +158,19 @@ int SqFindProd(int size) {
 // When it is done, this function should store the product in gThreadProd[threadNum] and set gThreadDone[threadNum] to true
 void* ThFindProd(void *param) {
 	int threadNum = ((int*)param)[0];
+	int start = ((int*)param)[1];
+	int end = ((int*)param)[2];
 
+	int prod = 1;
+	for (int i = start; i <= end; i++) {
+		prod *= gData[i];
+		prod %= NUM_LIMIT;
+	}
+
+	gThreadProd[threadNum] = prod;
+	gThreadDone[threadNum] = true;
+
+	pthread_exit(0);
 }
 
 // Write a thread function that computes the product of all the elements in one division of the array mod NUM_LIMIT
@@ -155,7 +181,31 @@ void* ThFindProd(void *param) {
 // post the "completed" semaphore if it is the last thread to be done
 // Don't forget to protect access to gDoneThreadCount with the "mutex" semaphore
 void* ThFindProdWithSemaphore(void *param) {
+	int threadNum = ((int*)param)[0];
+	int start = ((int*)param)[1];
+	int end = ((int*)param)[2];
 
+	int prod = 1;
+	for (int i = start; i <= end; i++) {
+		prod *= gData[i];
+		prod %= NUM_LIMIT;
+	}
+
+	if (prod == 0) {
+		sem_post(&completed);
+	} else {
+		sem_wait(&mutex);
+		gDoneThreadCount++;
+		if (gDoneThreadCount == gThreadCount) {
+			sem_post(&completed);
+		}
+		sem_post(&mutex);
+	}
+
+	gThreadProd[threadNum] = prod;
+	gThreadDone[threadNum] = true;
+
+	pthread_exit(0);
 }
 
 int ComputeTotalProduct() {
@@ -183,14 +233,34 @@ void InitSharedVars() {
 // Write a function that fills the gData array with random numbers between 1 and MAX_RANDOM_NUMBER
 // If indexForZero is valid and non-negative, set the value at that index to zero
 void GenerateInput(int size, int indexForZero) {
+	srand(RANDOM_SEED);
 
+	for(int i = 0; i < size; i++){
+		gData[i] = GetRand(1, MAX_RANDOM_NUMBER);
+	}
+
+	if(indexForZero >= 0) {
+		gData[indexForZero] = 0;
+	}
 }
 
 // Write a function that calculates the right indices to divide the array into thrdCnt equal divisions
 // For each division i, indices[i][0] should be set to the division number i,
 // indices[i][1] should be set to the start index, and indices[i][2] should be set to the end index
 void CalculateIndices(int arraySize, int thrdCnt, int indices[MAX_THREADS][3]) {
+	int divisionSize = arraySize / thrdCnt;
+	int start = 0;
+	int end = divisionSize - 1;
 
+	for(int i = 0; i < thrdCnt; i++){
+		indices[i][0] = i;
+		indices[i][1] = start;
+		indices[i][2] = end;
+		start = end + 1;
+		end = start + divisionSize - 1;
+	}
+
+	indices[thrdCnt-1][2] = arraySize - 1;
 }
 
 // Get a random number in the range [x, y]
