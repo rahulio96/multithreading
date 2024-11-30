@@ -101,7 +101,6 @@ int main(int argc, char *argv[]){
 	}
 
 	for (int j = 0; j < gThreadCount; j++) {
-		while (!gThreadDone[j]);
 		pthread_join(tid[j], NULL);
 	}
 
@@ -119,6 +118,46 @@ int main(int argc, char *argv[]){
 	// The thread start function is ThFindProd
 	// Don't forget to properly initialize shared variables
 
+	// Keep track of if all threads are done
+	// Use volatile to prevent compiler optimization
+	volatile bool isBusyWaiting = true;
+
+	// Init Threads
+	for (int i = 0; i < gThreadCount; i++) {
+		pthread_attr_init(&attr[i]);
+		pthread_create(&tid[i], &attr[i], ThFindProd, indices[i]);
+	}
+
+	// Busy waiting loop
+	// If all threads are not done, keep checking all children
+	while (isBusyWaiting) {
+		// Default to true
+		bool areAllThreadsDone = true;
+
+		// Check all children
+		for (int j = 0; j < gThreadCount; j++) {
+			if (gThreadDone[j]) {
+				// If we find a 0 break out of loop
+				if (gThreadProd[j] == 0) {
+					isBusyWaiting = false;
+					break;
+				}
+			} else {
+				// If a thread is not done, set bool to false
+				areAllThreadsDone = false;
+			}
+		}
+
+		// If bool hasn't been set to false, all threads are done
+		if (areAllThreadsDone) {
+			isBusyWaiting = false;
+		}
+	}
+
+	// Cancel all threads after busy waiting is done
+	for (int k = 0; k < gThreadCount; k++) {
+		pthread_cancel(tid[k]);
+	}
 
     prod = ComputeTotalProduct();
 	printf("Threaded multiplication with parent continually checking on children completed in %ld ms. Product = %d\n", GetTime(), prod);
@@ -165,6 +204,11 @@ void* ThFindProd(void *param) {
 	for (int i = start; i <= end; i++) {
 		prod *= gData[i];
 		prod %= NUM_LIMIT;
+
+		// If we find a 0, exit early
+		if (prod == 0) {
+			break;
+		}
 	}
 
 	gThreadProd[threadNum] = prod;
