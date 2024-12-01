@@ -241,6 +241,11 @@ int SqFindProd(int size) {
 	for (int i = 0; i < size; i++) {
 		prod *= gData[i];
 		prod %= NUM_LIMIT;
+		
+		// If we find a 0, exit early as stated in instructions
+		if (prod == 0) {
+			break;
+		}
 	}
 	return prod;
 }
