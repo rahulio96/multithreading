@@ -20,9 +20,6 @@ OSs Tested on: Linux
 #define MAX_RANDOM_NUMBER 3000
 #define NUM_LIMIT 9973
 
-// g++ -O3 src/MTFindProd.c -o bin/MTFindProd -lpthread
-// bin/MTFindProd x y z
-
 // Global variables
 long gRefTime; //For timing
 int gData[MAX_SIZE]; //The array that will hold the data
@@ -174,8 +171,19 @@ int main(int argc, char *argv[]){
 	// Initialize threads, create threads, and then make the parent wait on the "completed" semaphore
 	// The thread start function is ThFindProdWithSemaphore
 	// Don't forget to properly initialize shared variables and semaphores using sem_init
+	sem_init(&completed, 0, 0);
+	sem_init(&mutex, 0, 1);
 
+	for (int i = 0; i < gThreadCount; i++) {
+		pthread_attr_init(&attr[i]);
+		pthread_create(&tid[i], &attr[i], ThFindProdWithSemaphore, indices[i]);
+	}
 
+	sem_wait(&completed);
+
+	for (int j = 0; j < gThreadCount; j++) {
+		pthread_cancel(tid[j]);
+	}
 
     prod = ComputeTotalProduct();
 	printf("Threaded multiplication with parent waiting on a semaphore completed in %ld ms. Min = %d\n", GetTime(), prod);
@@ -233,22 +241,27 @@ void* ThFindProdWithSemaphore(void *param) {
 	for (int i = start; i <= end; i++) {
 		prod *= gData[i];
 		prod %= NUM_LIMIT;
-	}
 
-	if (prod == 0) {
-		sem_post(&completed);
-	} else {
-		sem_wait(&mutex);
-		gDoneThreadCount++;
-		if (gDoneThreadCount == gThreadCount) {
-			sem_post(&completed);
+		// If we find a 0, exit early
+		if (prod == 0) {
+			break;
 		}
-		sem_post(&mutex);
 	}
 
 	gThreadProd[threadNum] = prod;
 	gThreadDone[threadNum] = true;
 
+	// If we don't find a 0, update gDoneThreadCount
+	if (prod != 0) {
+		sem_wait(&mutex);
+		gDoneThreadCount++;
+		sem_post(&mutex);
+	}
+
+	// Post if we find a 0 or if we are on the last thread
+	if (prod == 0 || gDoneThreadCount == gThreadCount) {
+		sem_post(&completed);
+	}
 	pthread_exit(0);
 }
 
