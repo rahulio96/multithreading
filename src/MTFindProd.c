@@ -5,6 +5,51 @@ Third Assignment
 Gupta, Rahul
 Section #5
 OSs Tested on: Linux
+Hardware configuration from lscpu (ecs machine):
+
+Architecture:             x86_64
+  CPU op-mode(s):         32-bit, 64-bit
+  Address sizes:          43 bits physical, 48 bits virtual
+  Byte Order:             Little Endian
+CPU(s):                   4
+  On-line CPU(s) list:    0-3
+Vendor ID:                GenuineIntel
+  Model name:             Intel(R) Xeon(R) Gold 6254 CPU @ 3.10GHz
+    CPU family:           6
+    Model:                58
+    Thread(s) per core:   1
+    Core(s) per socket:   2
+    Socket(s):            2
+    Stepping:             0
+    BogoMIPS:             6185.46
+    Flags:                fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ss ht syscall nx rdtscp lm constant_tsc arch_perfmon nopl xtopology tsc_reliable nonstop_tsc cpuid tsc_known_freq
+                           pni pclmulqdq ssse3 cx16 pcid sse4_1 sse4_2 x2apic popcnt tsc_deadline_timer aes xsave avx f16c rdrand hypervisor lahf_lm pti ssbd ibrs ibpb stibp fsgsbase tsc_adjust smep arat md_clear flush_l1d arch_capabilit
+                          ies
+Virtualization features:
+  Hypervisor vendor:      VMware
+  Virtualization type:    full
+Caches (sum of all):
+  L1d:                    128 KiB (4 instances)
+  L1i:                    128 KiB (4 instances)
+  L2:                     4 MiB (4 instances)
+  L3:                     49.5 MiB (2 instances)
+NUMA:
+  NUMA node(s):           1
+  NUMA node0 CPU(s):      0-3
+Vulnerabilities:
+  Gather data sampling:   Not affected
+  Itlb multihit:          KVM: Mitigation: VMX unsupported
+  L1tf:                   Mitigation; PTE Inversion
+  Mds:                    Mitigation; Clear CPU buffers; SMT Host state unknown
+  Meltdown:               Mitigation; PTI
+  Mmio stale data:        Unknown: No mitigations
+  Reg file data sampling: Not affected
+  Retbleed:               Not affected
+  Spec rstack overflow:   Not affected
+  Spec store bypass:      Mitigation; Speculative Store Bypass disabled via prctl
+  Spectre v1:             Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+  Spectre v2:             Mitigation; Retpolines; IBPB conditional; IBRS_FW; STIBP disabled; RSB filling; PBRSB-eIBRS Not affected; BHI Retpoline
+  Srbds:                  Unknown: Dependent on hypervisor status
 */
 
 #include <stdio.h>
