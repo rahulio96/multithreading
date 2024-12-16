@@ -6,7 +6,11 @@ Practicing process synchronization using the following schemes:
   4. Multithreaded where the parent waits on a semaphore
 
 ## Compile
-`g++ -O3 src/MTFindProd.c -o bin/MTFindProd -lpthread`
+```bash
+g++ -O3 src/MTFindProd.c -o bin/MTFindProd -lpthread
+```
 
 ## Execute
-`bin/MTFindProd <array size> <thread count> <index for zero>`
+```bash
+bin/MTFindProd <array size> <thread count> <index for zero>
+```
